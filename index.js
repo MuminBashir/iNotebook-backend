@@ -5,9 +5,11 @@ connectToMongo();
 const app = express();
 const port = 3000;
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
+app.use(express.json());
+
+//Routes available
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/notes", require("./routes/notes"));
 
 app.listen(port, () => {
   console.log(`listening at https://localhost:${port}`);
