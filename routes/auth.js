@@ -4,10 +4,11 @@ const router = express.Router();
 const { check, validationResult } = require("express-validator");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const fetchuser = require("../middleware/fetchuser");
 
 const JWT_SECRET = "openinotebook";
 
-// Create a user using POST : (/api/auth/createuser) - no login req
+// Route 1 :: Create a user using: POST "/api/auth/createuser" - no login req
 router.post(
   "/createuser",
   [
@@ -53,13 +54,13 @@ router.post(
       const authToken = jwt.sign(data, JWT_SECRET);
       res.status(200).json({ authToken });
     } catch (error) {
-      console.error(error);
+      console.error(error.message);
       res.status(500).send("Unexpected error occured");
     }
   }
 );
 
-// Authenticating a user using POST : (/api/auth/login) - no login req
+// Route 2 :: Authenticating a user using: POST "/api/auth/login" - no login req
 router.post(
   "/login",
   [
@@ -96,9 +97,21 @@ router.post(
       const authToken = jwt.sign(data, JWT_SECRET);
       res.status(200).json({ authToken });
     } catch (error) {
-      console.error(error);
+      console.error(error.message);
       res.status(500).send("Unexpected error occured");
     }
   }
 );
+
+// Route 3 :: Fetch a logged-in user details using: POST "/api/auth/getuser" - login req
+router.post("/getuser", fetchuser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    res.status(200).send(user);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Unexpected error occured");
+  }
+});
 module.exports = router;
