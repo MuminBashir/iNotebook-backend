@@ -23,7 +23,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Try to create a user and stroe data in database if no error found
+    // Try to create a user and store data in database if no error found
     try {
       // To check if a user with email already exists
       let user = await User.findOne({ email: req.body.email });
@@ -59,4 +59,46 @@ router.post(
   }
 );
 
+// Authenticating a user using POST : (/api/auth/login) - no login req
+router.post(
+  "/login",
+  [
+    check("email", "Enter a valid email").isEmail(),
+    check("password", "password cannot be blank").exists(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, password } = req.body;
+
+    try {
+      // check if this email exists
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).send({ error: "Invalid Credentials" });
+      }
+
+      //checking if hashed password matches with user entered password
+      const checkPassword = await bcryptjs.compare(password, user.password);
+      if (!checkPassword) {
+        return res.status(400).send({ error: "Invalid Credentials" });
+      }
+
+      //Sending back authToken to user to identify
+      const data = {
+        user: {
+          id: user.id,
+        },
+      };
+      const authToken = jwt.sign(data, JWT_SECRET);
+      res.status(200).json({ authToken });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Unexpected error occured");
+    }
+  }
+);
 module.exports = router;
