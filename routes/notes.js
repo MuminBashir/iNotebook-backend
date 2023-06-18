@@ -77,9 +77,30 @@ router.put("/updatenote/:id", fetchuser, async (req, res) => {
     note = await Notes.findByIdAndUpdate(
       req.params.id,
       { $set: newNote },
-      { new: true } 
+      { new: true }
     );
-    res.status(200).json(note) 
+    res.status(200).json(note);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Unexpected error occured");
+  }
+});
+
+// Route 4 :: Deleting existing note using: DELETE "/api/notes/deletenote/:id" - login req
+router.delete("/deletenote/:id", fetchuser, async (req, res) => {
+  try {
+    //find note to delete and delete it
+    let note = await Notes.findById(req.params.id);
+    if (!note) {
+      return res.status(404).send({ error: "Note not found" });
+    }
+
+    if (note.user.toString() !== req.user.id) {
+      return res.status(401).send("Access Denied");
+    }
+
+    note = await Notes.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: "Note deleted successfully", note: note });
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Unexpected error occured");
