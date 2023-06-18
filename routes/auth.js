@@ -79,13 +79,13 @@ router.post(
       // check if this email exists
       const user = await User.findOne({ email });
       if (!user) {
-        return res.status(400).send({ error: "Invalid Credentials" });
+        return res.status(400).json({ error: "Invalid Credentials" });
       }
 
       //checking if hashed password matches with user entered password
       const checkPassword = await bcryptjs.compare(password, user.password);
       if (!checkPassword) {
-        return res.status(400).send({ error: "Invalid Credentials" });
+        return res.status(400).json({ error: "Invalid Credentials" });
       }
 
       //Sending back authToken to user to identify
@@ -108,7 +108,7 @@ router.post("/getuser", fetchuser, async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId).select("-password");
-    res.status(200).send(user);
+    res.status(200).json(user);
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Unexpected error occured");
